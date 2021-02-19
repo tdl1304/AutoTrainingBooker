@@ -91,7 +91,7 @@ else:
     if input("Do you want to save the username and password? WARNING SAVED IN CLEAR TEXT!  (y/n)") == "y":
         with open('sit.psw', 'w') as outfile:
             json.dump({"email": username, "password": passwd}, outfile)
-    print("Username and passwd saved to qs.psw")
+            print("Username and passwd saved to qs.psw")
 
 if Path("config.json").is_file():
     with open('config.json') as inFile:
@@ -107,7 +107,7 @@ else:
         json.dump({
             "studio": int(studio),
             "bookTime": time
-        })
+        }, out)
     print("Settings saved")
 
 # Main func
