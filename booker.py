@@ -46,7 +46,9 @@ def setCookie(email, password):
                             headers=header)
         header['Cookie'] = res.request.headers['Cookie']
     except KeyError:
-        exit('Username and password is wrong. Please edit sit.psw file accordingly')
+        print('Username and password is wrong. Please edit sit.psw file accordingly')
+        input("press close to exit")
+        exit(-1)
 
 
 # gets schedule in two days
@@ -59,7 +61,7 @@ def getSchedule():
         res = requests.get(url=requestURL, data=None, headers=header)
         if res.status_code == 200:
             res_json = res.json()
-            if res_json is not None:
+            if res_json['days'] is not None:
                 daySchedule = [element for element in res_json['days'] if element['dayName'] == day]
                 class_ = [element for element in daySchedule[0]['classes'] if time in element['from']]
                 return class_[0]
@@ -68,6 +70,8 @@ def getSchedule():
         setToken()
         return getSchedule()
     except Exception as inst:
+        print('Exception with getSchedule occurred', datetime.now().time())
+        input("press close to exit")
         exit(type(inst))
 
 
@@ -113,8 +117,8 @@ else:
 # Main func
 setCookie(email=username, password=passwd)
 setToken()
-bookable = False
-lastBooked = -1
+bookable = True
+lastBooked = datetime.today().weekday()-1
 while True:
     today = datetime.today().weekday()  # 0-6
     hour = datetime.now().hour
@@ -134,16 +138,17 @@ while True:
                 bookable = True
             elif res.json()['errorCode'] == 1013:
                 print("You have overlapping bookings, fix this manually and rerun")
-                exit(-2)
+                input("press close to exit")
+                exit(-1)
             else:
-                exit("Something unexpected happened")
+                print("Something unexpected happened")
+                input("press close to exit")
+                exit(-1)
         else:
             print('waiting for queue to open', datetime.now().time())
-            tm.sleep(60)  # check every 60 sec
-    print('Checking for next day 60 min before time')
-    print(today, ":", hour)
-    if today == lastBooked + 1 and hour == int(time[:1])-1:
+            tm.sleep(120)  # check every 120 sec
+    # checks for a new day
+    if today == lastBooked + 1 and hour == int(time[:2]) - 1:
         bookable = False
     else:
-        print('Waiting for the next day', datetime.now().time())
         tm.sleep(3600)  # check every hour

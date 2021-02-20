@@ -4,7 +4,7 @@ Although it may work with other versions. Not tested yet.
   
 **How it works - in a nutshell**  
 It checks for available bookings two days ahead at a specified time. 
-It will check every **minute** at **1 hour** before the specified time. Once a booking has been made, it will wait till the next day and about the same hour. Terminating the program during runtime is **safe**.  
+It will check **every 2 minutes** at **1 hour** before the specified time. Once a booking has been made, it will wait till the next day and about the same hour. Terminating the program during runtime is **safe**.  
   
 *Disclaimer: only for personal usage* 
 
@@ -15,6 +15,12 @@ It will check every **minute** at **1 hour** before the specified time. Once a b
     * [Mac OS X](#mac-os-x)
     * [Linux Ubuntu](#linux-ubuntu)
 * [Installation](#installation)
+    * [Step 1](#clone-repo-as-zip-or-with)
+    * [Step 2](#setup-a-virtual-environment-inside-the-folder-of-the-repository)
+    * [Step 3](#install-all-requirements-using-pip)
+    * [Step 4](#create-a-distribution-with-pyinstallerhttpspypiorgprojectpyinstaller)
+    * [Step 5](#optionally-make-a-shortcut-or-just-run-the-executable-file)
+    * [PyCharm](#pycharm)
 * [How-to-use](#how-to-use)
     * [Setup](#setup)
 * [Limitations](#limitations)
@@ -41,12 +47,12 @@ It will check every **minute** at **1 hour** before the specified time. Once a b
     $ sudo apt-get update
     $ sudo apt-get install python3.8
 ## Installation
-1. Clone repo as zip or with: 
+1. ##### Clone repo as zip or with: 
 
    ```
    $ git clone https://github.com/tdl1304/AutoTrainingBooker.git
    ```
-2. Setup a virtual environment inside the folder of the repository.
+2. ##### Setup a virtual environment inside the folder of the repository.
     Simply enter into cmd/unix terminal:
     ##### Windows cmd
      ```
@@ -70,14 +76,14 @@ It will check every **minute** at **1 hour** before the specified time. Once a b
    ```
    $ (AutoTrainingBooker) path-to-folder\AutoTrainingBooker>
    ```
-3. Install all requirements using pip:  
-**Use "pip3" instead of "pip" for Linux Ubuntu**
+3. ##### Install all requirements using pip:  
+   **Use "pip3" instead of "pip" for Linux Ubuntu**
     ```
    $ pip install -r requirements.txt
    ```
    
-4. Create a distribution with [PyInstaller](https://pypi.org/project/pyinstaller/).
-While inside the same folder simply enter:
+4. ##### Create a distribution with [PyInstaller](https://pypi.org/project/pyinstaller/).
+   While inside the same folder simply enter:
    ##### Windows and Linux Ubuntu
    ```
    $ pyinstaller booker.py -F --name "AutoTrainingBooker" --clean
@@ -91,7 +97,12 @@ While inside the same folder simply enter:
    --clean
    ```
    Once done, an executable file should be inside the folder AutoTrainingBooker\dist
-5. Optionally make a shortcut or just run the executable file  
+5. ##### Optionally make a shortcut or just run the executable file  
+
+### PyCharm
+1. Create new project from git repository and paste in repo-link
+2. Set your interpreter to python ~3.8 and install all requirements. How-to-do for [commandline](#install-all-requirements-using-pip).
+3. If you want to create and executable follow this [step](#create-a-distribution-with-pyinstallerhttpspypiorgprojectpyinstaller)
 
 ## How-to-use
 1. #### Setup
@@ -116,7 +127,13 @@ While inside the same folder simply enter:
   * In rare occurrences, the user is denied from access to sit.no, this could likely be because of many repeated failed attempts.
 * Overlapping sessions will cause a crash and have to be fixed manually
 * Program could crash if **Studio ID** or **Booking time** is invalid/not found [look here](#how-to-use)
-* Rare occurences:
-    * Too many REST requests, causes response to be of type None, raising **NoneType** exception
+
+## Updates
+Using git:
+   ```
+   $ git status
+   $ git pull 
+   ```
+TODO: Will implement automatic pulls with webhooks in the future.
 
 
