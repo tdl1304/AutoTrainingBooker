@@ -10,6 +10,5 @@ Python version: 3.8.8
    ```
    $ git clone https://github.com/tdl1304/AutoTrainingBooker.git
    ```
-2. Run file booker.exe
 
 
