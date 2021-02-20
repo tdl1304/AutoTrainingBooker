@@ -9,7 +9,6 @@ idna==2.*
 macholib==1.14
 modulegraph==0.18
 pefile==2019.4.18
-py2app==0.23
 pyinstaller==4.2
 pyinstaller-hooks-contrib==2020.11
 python-slugify==4.0.1
@@ -21,4 +20,3 @@ simple-rest-client==1.0.8
 sniffio==1.2.0
 text-unidecode==1.3
 urllib3==1.26.3
-pipenv==2018.10.13
