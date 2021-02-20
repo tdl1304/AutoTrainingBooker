@@ -1,2 +1,5 @@
 # AutoTrainingBooker
-for personal usage
+Disclaimer: Only for personal usage
+
+## Getting started
+
