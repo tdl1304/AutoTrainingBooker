@@ -119,6 +119,7 @@ setCookie(email=username, password=passwd)
 setToken()
 bookable = True
 lastBooked = datetime.today().weekday()-1
+print('Running')
 while True:
     today = datetime.today().weekday()  # 0-6
     hour = datetime.now().hour
