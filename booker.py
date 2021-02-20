@@ -136,7 +136,7 @@ while True:
                 print("You have overlapping bookings, fix this manually and rerun")
                 exit(-2)
             else:
-                exit("Something wrong actually happened")
+                exit("Something unexpected happened")
         else:
             print('waiting for queue to open', datetime.now().time())
             tm.sleep(60)  # check every 60 sec
