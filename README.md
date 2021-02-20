@@ -4,7 +4,7 @@ Although it may work with other versions. Not tested yet.
   
 **How it works - in a nutshell**  
 It checks for available bookings two days ahead at a specified time. 
-It will check **every 1 minutes** at **5 min** before the specified time. Once a booking has been made, it will wait till the next day and about the same hour. Terminating the program during runtime is **safe**.  
+It will wait till 5 seconds before session time. Then check for booking every 2 seconds. Once a booking has been made, it will wait till the next day. Terminating the program during runtime is **safe**.  
   
 *Disclaimer: only for personal usage* 
 
@@ -83,12 +83,14 @@ It will check **every 1 minutes** at **5 min** before the specified time. Once a
    ```
    
 4. ##### Create a distribution with [PyInstaller](https://pypi.org/project/pyinstaller/).
-   While inside the same folder simply enter:
+   While inside the same folder simply enter:  
+   Add ```-w``` for executable without command prompt.
    ##### Windows and Linux Ubuntu
    ```
    $ pyinstaller booker.py -F --name "AutoTrainingBooker" --clean
    ```
    ##### Mac OS X
+   
    ```
    $ pyinstaller booker.py -F 
    --name "AutoTrainingBooker" 

@@ -1,5 +1,6 @@
 import json
 from datetime import datetime
+from datetime import timedelta
 import time as tm
 import requests
 from pathlib import Path
@@ -23,6 +24,9 @@ header = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.182 Safari/537.36',
     'Connection': 'keep-alive'
 }
+
+today = datetime.today()
+global time
 
 
 #  get token for session
@@ -76,18 +80,22 @@ def getSchedule():
 
 
 def getSecondDay():
-    today = datetime.today().weekday()
-    secondDay = today + 2
+    today_ = datetime.today().weekday()
+    secondDay = today_ + 2
     if secondDay > 6:
         secondDay -= 7
     return days[secondDay]
 
-def get10minBefore(minute):
-    if minute == 0:
-        return 55
-    else:
-        return minute-5
 
+#  Time difference between today and a specified day
+#  Default is next day at specified time from user
+def deltaDays(thatDay=(datetime(today.year, today.month, today.day, int(time[:2]), int(time[3:]), 0, 0)+timedelta(days=1))):
+    now = datetime.now()
+    difference = thatDay - now
+    return difference.total_seconds()
+
+
+# Main func
 if Path("sit.psw").is_file():
     with open('sit.psw') as data_file:
         data_loaded = json.load(data_file)
@@ -119,16 +127,19 @@ else:
         }, out)
     print("Settings saved")
 
-# Main func
 setCookie(email=username, password=passwd)
 setToken()
-bookable = True
-lastBooked = datetime.today().weekday()-1
+bookable = False
 print('Running')
+nextSession = datetime(today.year, today.month, today.day, int(time[:2]), int(time[3:]), 0, 0)
+deltaTime = deltaDays(thatDay=nextSession)
+if deltaTime < 6:
+    print('Auto Training Booker ran too late, skipping 1 day')
+    bookable = True
+else:
+    print('Waiting for queue to open', deltaTime-5)
+    tm.sleep(deltaTime-5)
 while True:
-    today = datetime.today().weekday()  # 0-6
-    hour = datetime.now().hour
-    minutes = datetime.now().minute
     while not bookable:
         class_select = getSchedule()
         if class_select['bookable']:
@@ -137,11 +148,9 @@ while True:
                                 headers=header)
             if res.status_code == 200:
                 print('Booked for', class_select['from'])
-                lastBooked = today
                 bookable = True
             elif res.json()['errorCode'] == 1005:
                 print("Already booked", class_select['from'])
-                lastBooked = today
                 bookable = True
             elif res.json()['errorCode'] == 1013:
                 print("You have overlapping bookings, fix this manually and rerun")
@@ -153,12 +162,9 @@ while True:
                 exit(-1)
         else:
             print('waiting for queue to open', datetime.now().time())
-            tm.sleep(60)  # check every 60 sec
-    # checks for a new day
+            tm.sleep(2)  # check every 2 sec
+    print('Waiting till the next day totalsecs:', deltaDays()-5)
+    tm.sleep(deltaDays()-5)  # waits till the next day 5 seconds before
+    today = datetime.today()
+    bookable = False
 
-    if today == lastBooked + 1 and hour == int(time[:2]) - 1:  # and if time is one hour before
-        while minutes <= get10minBefore(int(time[3:])):  # check if minute is 5 minutes before
-            tm.sleep(210)  # check every 3,5 minutes
-        bookable = False
-    else:
-        tm.sleep(3600)  # check every hour
