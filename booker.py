@@ -65,9 +65,9 @@ def getSchedule():
                 daySchedule = [element for element in res_json['days'] if element['dayName'] == day]
                 class_ = [element for element in daySchedule[0]['classes'] if time in element['from']]
                 return class_[0]
-        # else this happens
-        setCookie(email=username, password=passwd)
-        setToken()
+        if res.status_code == 403:
+            setCookie(email=username, password=passwd)
+            setToken()
         return getSchedule()
     except Exception as inst:
         print('Exception with getSchedule occurred', datetime.now().time())
