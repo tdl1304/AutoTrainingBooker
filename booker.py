@@ -84,9 +84,9 @@ def getSecondDay():
 
 def get10minBefore(minute):
     if minute == 0:
-        return 50
+        return 55
     else:
-        return minute-10
+        return minute-5
 
 if Path("sit.psw").is_file():
     with open('sit.psw') as data_file:
@@ -153,12 +153,12 @@ while True:
                 exit(-1)
         else:
             print('waiting for queue to open', datetime.now().time())
-            tm.sleep(120)  # check every 120 sec
+            tm.sleep(60)  # check every 60 sec
     # checks for a new day
 
     if today == lastBooked + 1 and hour == int(time[:2]) - 1:  # and if time is one hour before
-        while minutes <= get10minBefore(int(time[3:])):  # check if minute is 10 minutes before
-            tm.sleep(180)  # check 3 minutes
+        while minutes <= get10minBefore(int(time[3:])):  # check if minute is 5 minutes before
+            tm.sleep(210)  # check every 3,5 minutes
         bookable = False
     else:
         tm.sleep(3600)  # check every hour

@@ -4,7 +4,7 @@ Although it may work with other versions. Not tested yet.
   
 **How it works - in a nutshell**  
 It checks for available bookings two days ahead at a specified time. 
-It will check **every 2 minutes** at **1 hour** before the specified time. Once a booking has been made, it will wait till the next day and about the same hour. Terminating the program during runtime is **safe**.  
+It will check **every 1 minutes** at **5 min** before the specified time. Once a booking has been made, it will wait till the next day and about the same hour. Terminating the program during runtime is **safe**.  
   
 *Disclaimer: only for personal usage* 
 
