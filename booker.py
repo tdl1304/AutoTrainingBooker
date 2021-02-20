@@ -27,75 +27,8 @@ header = {
 
 today = datetime.today()
 global time
-
-
-#  get token for session
-def setToken():
-    global token
-    res = requests.get(url=request['treneselv']['url'], data=None, headers=header)
-    for lines in res.iter_lines():
-        if b'token:' in lines:
-            string = str(lines, 'UTF-8').strip()
-            startIndex = string.find('"') + 1
-            endIndex = string.rfind('"')
-            token = string[startIndex:endIndex]
-            break
-
-
-# set cookies
-def setCookie(email, password):
-    try:
-        res = requests.post(url=request['login']['url'],
-                            data={"name": email, "pass": password, "op": "Logg inn", "form_id": "user_login"},
-                            headers=header)
-        header['Cookie'] = res.request.headers['Cookie']
-    except KeyError:
-        print('Username and password is wrong. Please edit sit.psw file accordingly')
-        input("press close to exit")
-        exit(-1)
-
-
-# gets schedule in two days
-def getSchedule():
-    try:
-        day = getSecondDay()
-        requestURL = request['schedule']['url'] + \
-                     '?studios=' + str(studio) + \
-                     '&token=' + token
-        res = requests.get(url=requestURL, data=None, headers=header)
-        if res.status_code == 200:
-            res_json = res.json()
-            if res_json['days'] is not None:
-                daySchedule = [element for element in res_json['days'] if element['dayName'] == day]
-                class_ = [element for element in daySchedule[0]['classes'] if time in element['from']]
-                return class_[0]
-        if res.status_code == 403:
-            setCookie(email=username, password=passwd)
-            setToken()
-        return getSchedule()
-    except Exception as inst:
-        print('Exception with getSchedule occurred', datetime.now().time())
-        input("press close to exit")
-        exit(type(inst))
-
-
-def getSecondDay():
-    today_ = datetime.today().weekday()
-    secondDay = today_ + 2
-    if secondDay > 6:
-        secondDay -= 7
-    return days[secondDay]
-
-
-#  Time difference between today and a specified day
-#  Default is next day at specified time from user
-def deltaDays(thatDay=(datetime(today.year, today.month, today.day, int(time[:2]), int(time[3:]), 0, 0)+timedelta(days=1))):
-    now = datetime.now()
-    difference = thatDay - now
-    return difference.total_seconds()
-
-
-# Main func
+global token
+# setup
 if Path("sit.psw").is_file():
     with open('sit.psw') as data_file:
         data_loaded = json.load(data_file)
@@ -127,6 +60,75 @@ else:
         }, out)
     print("Settings saved")
 
+
+#  get token for session
+def setToken():
+    global token
+    response = requests.get(url=request['treneselv']['url'], data=None, headers=header)
+    for lines in response.iter_lines():
+        if b'token:' in lines:
+            string = str(lines, 'UTF-8').strip()
+            startIndex = string.find('"') + 1
+            endIndex = string.rfind('"')
+            token = string[startIndex:endIndex]
+            break
+
+
+# set cookies
+def setCookie(email, password):
+    try:
+        response = requests.post(url=request['login']['url'],
+                                 data={"name": email, "pass": password, "op": "Logg inn", "form_id": "user_login"},
+                                 headers=header)
+        header['Cookie'] = response.request.headers['Cookie']
+    except KeyError:
+        print('Username and password is wrong. Please edit sit.psw file accordingly')
+        input("press close to exit")
+        exit(-1)
+
+
+# gets schedule in two days
+def getSchedule():
+    try:
+        day = getSecondDay()
+        requestURL = request['schedule']['url'] + \
+                     '?studios=' + str(studio) + \
+                     '&token=' + token
+        response = requests.get(url=requestURL, data=None, headers=header)
+        if response.status_code == 200:
+            res_json = response.json()
+            if res_json['days'] is not None:
+                daySchedule = [element for element in res_json['days'] if element['dayName'] == day]
+                class_ = [element for element in daySchedule[0]['classes'] if time in element['from']]
+                return class_[0]
+        if response.status_code == 403:
+            setCookie(email=username, password=passwd)
+            setToken()
+        return getSchedule()
+    except Exception as inst:
+        print('Exception with getSchedule occurred', datetime.now().time())
+        input("press close to exit")
+        exit(type(inst))
+
+
+def getSecondDay():
+    today_ = datetime.today().weekday()
+    secondDay = today_ + 2
+    if secondDay > 6:
+        secondDay -= 7
+    return days[secondDay]
+
+
+#  Time difference between today and a specified day
+#  Default is next day at specified time from user
+def deltaDays(
+        thatDay=(datetime(today.year, today.month, today.day, int(time[:2]), int(time[3:]), 0, 0) + timedelta(days=1))):
+    now = datetime.now()
+    difference = thatDay - now
+    return difference.total_seconds()
+
+
+# Main func
 setCookie(email=username, password=passwd)
 setToken()
 bookable = False
@@ -137,8 +139,8 @@ if deltaTime < 6:
     print('Auto Training Booker ran too late, skipping 1 day')
     bookable = True
 else:
-    print('Waiting for queue to open', deltaTime-5)
-    tm.sleep(deltaTime-5)
+    print('Waiting for queue to open', deltaTime - 5)
+    tm.sleep(deltaTime - 5)
 while True:
     while not bookable:
         class_select = getSchedule()
@@ -163,8 +165,7 @@ while True:
         else:
             print('waiting for queue to open', datetime.now().time())
             tm.sleep(2)  # check every 2 sec
-    print('Waiting till the next day totalsecs:', deltaDays()-5)
-    tm.sleep(deltaDays()-5)  # waits till the next day 5 seconds before
+    print('Waiting till the next day totalsecs:', deltaDays() - 5)
+    tm.sleep(deltaDays() - 5)  # waits till the next day 5 seconds before
     today = datetime.today()
     bookable = False
-
