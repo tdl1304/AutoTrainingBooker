@@ -8,7 +8,7 @@ It will check every **minute** at **1 hour** before the specified time. Once a b
   
 *Disclaimer: only for personal usage* 
 
-### Table of contents
+### Table of Contents
 * [Auto Training Booker](#auto-training-booker)
 * [Getting started](#getting-started)
     * [Windows](#windows)
