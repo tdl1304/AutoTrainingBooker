@@ -1,4 +1,4 @@
-# AutoTrainingBooker
+# Auto Training Booker
 **Python version: 3.8.8**  
 Although it may work with other versions. Not tested yet.  
   
@@ -7,6 +7,17 @@ It checks for available bookings two days ahead at a specified time.
 It will check every **minute** at **1 hour** before the specified time. Once a booking has been made, it will wait till the next day and about the same hour. Terminating the program during runtime is **safe**.  
   
 *Disclaimer: only for personal usage* 
+
+### Table of contents
+* [Auto Training Booker](#auto-training-booker)
+* [Getting started](#getting-started)
+    * [Windows](#windows)
+    * [Mac OS X](#mac-os-x)
+    * [Linux Ubuntu](#linux-ubuntu)
+* [Installation](#installation)
+* [How-to-use](#how-to-use)
+    * [Setup](#setup)
+* [Limitations](#limitations)
 ## Getting started
 1. Install [python](https://www.python.org/downloads/release/python-388/) 
 ##### Windows 
@@ -30,7 +41,6 @@ It will check every **minute** at **1 hour** before the specified time. Once a b
     $ sudo apt-get update
     $ sudo apt-get install python3.8
 ## Installation
-#### Windows, Linux Ubuntu and Mac OS X
 1. Clone repo as zip or with: 
 
    ```
