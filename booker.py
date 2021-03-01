@@ -121,8 +121,7 @@ def getSecondDay():
 
 #  Time difference between today and a specified day
 #  Default is next day at specified time from user
-def deltaDays(
-        thatDay=(datetime(today.year, today.month, today.day, int(time[:2]), int(time[3:]), 0, 0) + timedelta(days=1))):
+def deltaDays(thatDay=(datetime(today.year, today.month, today.day, int(time[:2]), int(time[3:]), 0, 0) + timedelta(days=1))):
     now = datetime.now()
     difference = thatDay - now
     return difference.total_seconds()
@@ -165,7 +164,11 @@ while True:
         else:
             print('waiting for queue to open', datetime.now().time())
             tm.sleep(2)  # check every 2 sec
-    print('Waiting till the next day totalsecs:', deltaDays() - 5)
-    tm.sleep(deltaDays() - 5)  # waits till the next day 5 seconds before
-    today = datetime.today()
-    bookable = False
+    try:
+        print('Waiting till the next day totalsecs:', deltaDays() - 5)
+        tm.sleep(deltaDays() - 5)  # waits till the next day 5 seconds before
+        today = today + timedelta(days=1)
+        bookable = False
+    except Exception as e:
+        print(type(e))
+        print(e)
