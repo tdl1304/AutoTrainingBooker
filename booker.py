@@ -25,7 +25,6 @@ header = {
     'Connection': 'keep-alive'
 }
 
-today = datetime.today()
 global time
 global token
 # setup
@@ -119,9 +118,11 @@ def getSecondDay():
     return days[secondDay]
 
 
-#  Time difference between today and a specified day
+#  Time difference between sessions
 #  Default is next day at specified time from user
-def deltaDays(thatDay=(datetime(today.year, today.month, today.day, int(time[:2]), int(time[3:]), 0, 0) + timedelta(days=1))):
+def deltaDays():
+    today_x = datetime.today()
+    thatDay = datetime(today_x.year, today_x.month, today_x.day, int(time[:2]), int(time[3:]), 0, 0) + timedelta(days=1)
     now = datetime.now()
     difference = thatDay - now
     return difference.total_seconds()
@@ -132,8 +133,7 @@ setCookie(email=username, password=passwd)
 setToken()
 bookable = False
 print('Running')
-nextSession = datetime(today.year, today.month, today.day, int(time[:2]), int(time[3:]), 0, 0)
-deltaTime = deltaDays(thatDay=nextSession)
+deltaTime = deltaDays()
 if deltaTime < 6:
     print('Auto Training Booker ran too late, skipping 1 day')
     bookable = True
@@ -167,7 +167,6 @@ while True:
     try:
         print('Waiting till the next day totalsecs:', deltaDays() - 5)
         tm.sleep(deltaDays() - 5)  # waits till the next day 5 seconds before
-        today = today + timedelta(days=1)
         bookable = False
     except Exception as e:
         print(type(e))
