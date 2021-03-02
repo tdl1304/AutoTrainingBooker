@@ -133,8 +133,8 @@ setCookie(email=username, password=passwd)
 setToken()
 bookable = False
 print('Running')
-deltaTime = deltaDays()
-if deltaTime < 6:
+deltaTime = datetime(datetime.today().year, datetime.today().month, datetime.today().day, int(time[:2]), int(time[3:]), 0, 0) - datetime.now()
+if deltaTime.total_seconds() < 6:
     print('Auto Training Booker ran too late, skipping 1 day')
     bookable = True
 else:
