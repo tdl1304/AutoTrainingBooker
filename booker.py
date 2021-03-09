@@ -162,9 +162,12 @@ while True:
                 print("Something unexpected happened")
                 input("press close to exit")
                 exit(-1)
+        elif datetime.now().hour == int(time[:2]) and datetime.now().min > int(time[3:]):
+            print("Too many retries, waiting for next day")
+            bookable = True
         else:
             print('waiting for queue to open', datetime.now().time())
-            tm.sleep(2)  # check every 2 sec
+            tm.sleep(5)  # check every 5 sec
     try:
         print('Waiting till the next day totalsecs:', deltaDays() - 5)
         tm.sleep(deltaDays() - 5)  # waits till the next day 5 seconds before
