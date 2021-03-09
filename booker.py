@@ -64,13 +64,18 @@ else:
 def setToken():
     global token
     response = requests.get(url=request['treneselv']['url'], data=None, headers=header)
-    for lines in response.iter_lines():
-        if b'token:' in lines:
-            string = str(lines, 'UTF-8').strip()
-            startIndex = string.find('"') + 1
-            endIndex = string.rfind('"')
-            token = string[startIndex:endIndex]
-            break
+    if response.status_code == 200:
+        for lines in response.iter_lines():
+            if b'token:' in lines:
+                string = str(lines, 'UTF-8').strip()
+                startIndex = string.find('"') + 1
+                endIndex = string.rfind('"')
+                token = string[startIndex:endIndex]
+                break
+    else:
+        print('Response code for token:', response.status_code)
+        input("press close to exit")
+        exit(-1)
 
 
 # set cookies
@@ -79,7 +84,12 @@ def setCookie(email, password):
         response = requests.post(url=request['login']['url'],
                                  data={"name": email, "pass": password, "op": "Logg inn", "form_id": "user_login"},
                                  headers=header)
-        header['Cookie'] = response.request.headers['Cookie']
+        if response.status_code == 200:
+            header['Cookie'] = response.request.headers['Cookie']
+        else:
+            print('Response code for cookie:', response.status_code)
+            input("press close to exit")
+            exit(-1)
     except KeyError:
         print('Username and password is wrong. Please edit sit.psw file accordingly')
         input("press close to exit")
