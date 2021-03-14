@@ -98,26 +98,30 @@ def setCookie(email, password):
 
 # gets schedule in two days
 def getSchedule():
-    try:
-        day = getSecondDay()
-        requestURL = request['schedule']['url'] + \
-                     '?studios=' + str(studio) + \
-                     '&token=' + token
-        response = requests.get(url=requestURL, data=None, headers=header)
-        if response.status_code == 200:
-            res_json = response.json()
-            if res_json['days'] is not None:
-                daySchedule = [element for element in res_json['days'] if element['dayName'] == day]
-                class_ = [element for element in daySchedule[0]['classes'] if time in element['from']]
-                return class_[0]
-        if response.status_code == 403:
-            setCookie(email=username, password=passwd)
-            setToken()
-        return getSchedule()
-    except Exception as inst:
-        print('Exception with getSchedule occurred', datetime.now().time())
-        input("press close to exit")
-        exit(type(inst))
+    n = 0
+    while n < 20:
+        try:
+            day = getSecondDay()
+            requestURL = request['schedule']['url'] + \
+                         '?studios=' + str(studio) + \
+                         '&token=' + token
+            response = requests.get(url=requestURL, data=None, headers=header)
+            if response.status_code == 200:
+                res_json = response.json()
+                if res_json['days'] is not None:
+                    daySchedule = [element for element in res_json['days'] if element['dayName'] == day]
+                    class_ = [element for element in daySchedule[0]['classes'] if time in element['from']]
+                    return class_[0]
+            elif response.status_code == 403:
+                setCookie(email=username, password=passwd)
+                setToken()
+            else:
+                n += 1
+        except Exception as inst:
+            print('Exception with getSchedule occurred', datetime.now().time())
+            input("press close to exit")
+            exit(type(inst))
+        return None
 
 
 def getSecondDay():
@@ -139,49 +143,59 @@ def deltaDays():
 
 
 # Main func
-setCookie(email=username, password=passwd)
-setToken()
-bookable = False
-print('Running')
-deltaTime = (datetime(datetime.today().year, datetime.today().month, datetime.today().day, int(time[:2]), int(time[3:]),
-                      0, 0) - datetime.now()).total_seconds()
-if deltaTime < 6:
-    print('Auto Training Booker ran too late, skipping 1 day')
-    bookable = True
-else:
-    print('Waiting for queue to open', deltaTime - 5)
-    tm.sleep(deltaTime - 5)
-while True:
-    while not bookable:
-        class_select = getSchedule()
-        if class_select['bookable']:
-            res = requests.post(url=request['book']['url'],
-                                data={"classId": class_select['id'], "token": token},
-                                headers=header)
-            if res.status_code == 200:
-                print('Booked for', class_select['from'])
+def main():
+    setCookie(email=username, password=passwd)
+    setToken()
+    print(getSchedule())
+    bookable = False
+    print('Running')
+    deltaTime = (datetime(datetime.today().year, datetime.today().month, datetime.today().day, int(time[:2]),
+                          int(time[3:]),
+                          0, 0) - datetime.now()).total_seconds()
+    if deltaTime < 6:
+        print('Auto Training Booker ran too late, skipping 1 day')
+        bookable = True
+    else:
+        print('Waiting for queue to open', deltaTime - 5)
+        tm.sleep(deltaTime - 5)
+    while True:
+        while not bookable:
+            class_select = getSchedule()
+            if class_select is None:
+                print("Tried to send 20 requests to server with no success, skipping a day")
                 bookable = True
-            elif res.json()['errorCode'] == 1005:
-                print("Already booked", class_select['from'])
+            elif class_select['bookable']:
+                res = requests.post(url=request['book']['url'],
+                                    data={"classId": class_select['id'], "token": token},
+                                    headers=header)
+                if res.status_code == 200:
+                    print('Booked for', class_select['from'])
+                    bookable = True
+                elif res.json()['errorCode'] == 1005:
+                    print("Already booked", class_select['from'])
+                    bookable = True
+                elif res.json()['errorCode'] == 1013:
+                    print("You have overlapping bookings, fix this manually and rerun")
+                    input("press close to exit")
+                    exit(-1)
+                else:
+                    print("Something unexpected happened")
+                    input("press close to exit")
+                    exit(-1)
+            elif datetime.now().hour == int(time[:2]) and datetime.now().min > int(time[3:]):
+                print("Too many retries, waiting for next day")
                 bookable = True
-            elif res.json()['errorCode'] == 1013:
-                print("You have overlapping bookings, fix this manually and rerun")
-                input("press close to exit")
-                exit(-1)
             else:
-                print("Something unexpected happened")
-                input("press close to exit")
-                exit(-1)
-        elif datetime.now().hour == int(time[:2]) and datetime.now().min > int(time[3:]):
-            print("Too many retries, waiting for next day")
-            bookable = True
-        else:
-            print('waiting for queue to open', datetime.now().time())
-            tm.sleep(5)  # check every 5 sec
-    try:
-        print('Waiting till the next day totalsecs:', deltaDays() - 5)
-        tm.sleep(deltaDays() - 5)  # waits till the next day 5 seconds before
-        bookable = False
-    except Exception as e:
-        print(type(e))
-        print(e)
+                print('waiting for queue to open', datetime.now().time())
+                tm.sleep(5)  # check every 5 sec
+        try:
+            print('Waiting till the next day totalsecs:', deltaDays() - 5)
+            tm.sleep(deltaDays() - 5)  # waits till the next day 5 seconds before
+            bookable = False
+        except Exception as e:
+            print(type(e))
+            print(e)
+
+
+if __name__ == '__main__':
+    main()
