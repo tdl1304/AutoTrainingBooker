@@ -86,6 +86,11 @@ def setCookie(email, password):
                                  headers=header)
         if response.status_code == 200:
             header['Cookie'] = response.request.headers['Cookie']
+        elif response.status_code >= 500:
+            print("Internal server errors")
+            print("Trying again in an hour")
+            tm.sleep(3600)
+            setCookie(email, password)
         else:
             print('Response code for cookie:', response.status_code)
             input("press close to exit")
@@ -121,7 +126,7 @@ def getSchedule():
             print('Exception with getSchedule occurred', datetime.now().time())
             input("press close to exit")
             exit(type(inst))
-        return None
+    return None
 
 
 def getSecondDay():
