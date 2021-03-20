@@ -27,6 +27,7 @@ header = {
 
 global time
 global token
+global double_booking
 # setup
 if Path("sit.psw").is_file():
     with open('sit.psw') as data_file:
@@ -47,15 +48,22 @@ if Path("config.json").is_file():
         data = json.load(inFile)
         studio = data['studio']
         time = data['bookTime']
+        double_booking = data['double_booking']
         print('Settings loaded from config.json')
 else:
     print('Velg en av disse:', studios.__str__())
     studio = input('Id on training centre format(integer): ')
     time = input('Preferred booking time format(HH:MM): ')
+    double_booking = input("Enable double booking: true/false")
+    if double_booking == "true":
+        double_booking = True
+    else:
+        double_booking = False
     with open('config.json', 'w') as out:
         json.dump({
             "studio": int(studio),
-            "bookTime": time
+            "bookTime": time,
+            "double_booking": double_booking
         }, out)
     print("Settings saved")
 
@@ -101,8 +109,8 @@ def setCookie(email, password):
         exit(-1)
 
 
-# gets schedule in two days
-def getSchedule():
+# gets schedule in two days scheduleTime format = "HH:MM"
+def getSchedule(scheduleTime=time):
     n = 0
     while n < 20:
         try:
@@ -115,7 +123,7 @@ def getSchedule():
                 res_json = response.json()
                 if res_json['days'] is not None:
                     daySchedule = [element for element in res_json['days'] if element['dayName'] == day]
-                    class_ = [element for element in daySchedule[0]['classes'] if time in element['from']]
+                    class_ = [element for element in daySchedule[0]['classes'] if scheduleTime in element['from']]
                     return class_[0]
             elif response.status_code == 403:
                 setCookie(email=username, password=passwd)
@@ -147,56 +155,75 @@ def deltaDays():
     return difference.total_seconds()
 
 
+# books a session returns false or true
+def book(bookingTime=time):
+    class_select = getSchedule(bookingTime)
+    if class_select is None:
+        print("Tried to send 20 requests to server with no success, skipping a day")
+        return True
+    if not class_select['bookable']:
+        return False
+
+    res = requests.post(url=request['book']['url'],
+                        data={"classId": class_select['id'], "token": token},
+                        headers=header)
+    if res.status_code == 200:
+        print('Booked for', class_select['from'])
+        return True
+    elif res.json()['errorCode'] == 1005:
+        print("Already booked", class_select['from'])
+        return True
+    elif res.json()['errorCode'] == 1013:
+        print("You have overlapping bookings, fix this manually and rerun")
+        input("press close to exit")
+        exit(-1)
+    else:
+        print("Something unexpected happened")
+        input("press close to exit")
+        exit(-1)
+
+
 # Main func
 def main():
+    global double_booking
     setCookie(email=username, password=passwd)
     setToken()
     print(getSchedule())
-    bookable = False
+    booked = False
+    this_double_booking = double_booking
+    bookingTime = time
     print('Running')
     deltaTime = (datetime(datetime.today().year, datetime.today().month, datetime.today().day, int(time[:2]),
                           int(time[3:]),
                           0, 0) - datetime.now()).total_seconds()
     if deltaTime < 6:
         print('Auto Training Booker ran too late, skipping 1 day')
-        bookable = True
+        booked = True
     else:
         print('Waiting for queue to open', deltaTime - 5)
         tm.sleep(deltaTime - 5)
+
     while True:
-        while not bookable:
-            class_select = getSchedule()
-            if class_select is None:
-                print("Tried to send 20 requests to server with no success, skipping a day")
-                bookable = True
-            elif class_select['bookable']:
-                res = requests.post(url=request['book']['url'],
-                                    data={"classId": class_select['id'], "token": token},
-                                    headers=header)
-                if res.status_code == 200:
-                    print('Booked for', class_select['from'])
-                    bookable = True
-                elif res.json()['errorCode'] == 1005:
-                    print("Already booked", class_select['from'])
-                    bookable = True
-                elif res.json()['errorCode'] == 1013:
-                    print("You have overlapping bookings, fix this manually and rerun")
-                    input("press close to exit")
-                    exit(-1)
+        while not booked:
+            if book(bookingTime):
+                # booking succeed
+                if this_double_booking:
+                    # set next booking time
+                    bookingTime = str(int(time[:2])+1)+":"+time[3:]
+                    this_double_booking = False
                 else:
-                    print("Something unexpected happened")
-                    input("press close to exit")
-                    exit(-1)
+                    booked = True
             elif datetime.now().hour == int(time[:2]) and datetime.now().min > int(time[3:]):
                 print("Too many retries, waiting for next day")
-                bookable = True
+                booked = True
             else:
                 print('waiting for queue to open', datetime.now().time())
                 tm.sleep(5)  # check every 5 sec
         try:
             print('Waiting till the next day totalsecs:', deltaDays() - 5)
             tm.sleep(deltaDays() - 5)  # waits till the next day 5 seconds before
-            bookable = False
+            booked = False
+            this_double_booking = double_booking
         except Exception as e:
             print(type(e))
             print(e)
