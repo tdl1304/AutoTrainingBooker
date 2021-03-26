@@ -55,18 +55,18 @@ else:
             active = True
             print('Velg en av disse:', studios.__str__())
             studio = input('Id on training centre format(integer): ')
-            time = input('Preferred booking time format(HH:MM): ')
-            double_booking = input("Enable double booking: (true/false) ")
-            if double_booking == "true":
+            bookTime = input('Preferred booking time format(HH:MM): ')
+            double_booking = input("Enable double booking: (y/n) ")
+            if double_booking == "y":
                 double_booking = True
             else:
                 double_booking = False
         else:
             active = False
             studio = 0
-            time = 0
+            bookTime = 0
             double_booking = False
-        schedule[day] = {"active": active, "studio": studio, "time": time, "double_booking": double_booking}
+        schedule[day] = {"active": active, "studio": studio, "time": bookTime, "double_booking": double_booking}
     with open('config.json', 'w') as out:
         json.dump(schedule, out)
     print("Settings saved")
@@ -78,6 +78,14 @@ def getSecondDay():
     if secondDay > 6:
         secondDay -= 7
     return days[secondDay]
+
+
+def getThirdDay():
+    today_ = datetime.today().weekday()
+    thirdDay = today_ + 3
+    if thirdDay > 6:
+        thirdDay -= 7
+    return days[thirdDay]
 
 
 #  get token for session
@@ -143,22 +151,34 @@ def getSchedule(scheduleTime=schedule[getSecondDay()]['time']):
             else:
                 n += 1
         except Exception as inst:
+            print(type(inst))
             print('Exception with getSchedule occurred', datetime.now().time())
+            print(inst)
             input("press close to exit")
-            exit(type(inst))
+            exit(-1)
     return None
 
 
 #  Time difference between sessions
 #  Default is next day at specified time from user
 def deltaDays():
-    bookingTime = schedule[getSecondDay()]['time']
-    today_x = datetime.today()
-    thatDay = datetime(today_x.year, today_x.month, today_x.day, int(bookingTime[:2]), int(bookingTime[3:]), 0,
-                       0) + timedelta(days=1)
-    now = datetime.now()
-    difference = thatDay - now
-    return difference.total_seconds()
+    if schedule[getThirdDay()]['active']:
+        bookingTime = schedule[getThirdDay()]['time']
+        today_x = datetime.today()
+        thatDay = datetime(today_x.year, today_x.month, today_x.day, int(bookingTime[:2]), int(bookingTime[3:])) \
+                  + timedelta(days=1)
+        now = datetime.now()
+        difference = thatDay - now
+        return difference.total_seconds()
+    else:
+        today_x = datetime.today()
+        thatDay = datetime(today_x.year, today_x.month, today_x.day, 0, 1, 0,
+                           0) + timedelta(days=1)
+        now = datetime.now()
+        difference = thatDay - now
+        print(getThirdDay(), 'was not active, waiting till the next day totalsecs:', difference.total_seconds())
+        time.sleep(difference.total_seconds())
+        return deltaDays()
 
 
 # books a session returns false or true
@@ -196,33 +216,39 @@ def main():
     this_double_booking = schedule[getSecondDay()]['double_booking']
     setCookie(email=username, password=passwd)
     setToken()
-    print("Upcoming booking:", getSchedule(bookingTime))
     booked = False
-    print('Running')
-    deltaTime = (datetime(datetime.today().year, datetime.today().month, datetime.today().day, int(bookingTime[:2]),
-                          int(bookingTime[3:]),
-                          0, 0) - datetime.now()).total_seconds()
-    if deltaTime < 6:
-        print('Auto Training Booker ran too late, skipping 1 day')
-        booked = True
+    if schedule[getSecondDay()]['active']:
+        print("Upcoming booking:", getSchedule(bookingTime))
+        print('Running')
+        deltaTime = (datetime(datetime.today().year, datetime.today().month, datetime.today().day, int(bookingTime[:2]),
+                              int(bookingTime[3:]),
+                              0, 0) - datetime.now()).total_seconds()
+        if deltaTime < 6:
+            print('Auto Training Booker ran too late, skipping 1 day')
+            booked = True
+        else:
+            print('Waiting for queue to open', deltaTime - 5)
+            time.sleep(deltaTime - 5)
     else:
-        print('Waiting for queue to open', deltaTime - 5)
-        time.sleep(deltaTime - 5)
+        print(getSecondDay(), "was not active, skipping 1 day")
 
     while True:
         while not booked:
             if not schedule[getSecondDay()]['active']:
                 # skipping a day if active is false
                 booked = True
-            if book(bookingTime):
+            elif book(bookingTime):
                 # booking succeed
                 if this_double_booking:
                     # set next booking time
-                    bookingTime = str(int(schedule[getSecondDay()]['time'][:2]) + 1) + ":" + schedule[getSecondDay()]['time'][3:]
+                    bookingTime = str(int(bookingTime[:2]) + 1) + ":" + bookingTime[3:]
                     this_double_booking = False
+                    print('Waiting for double booking in 1 hour...')
+                    time.sleep(3599)
                 else:
                     booked = True
-            elif datetime.now().hour == int(schedule[getSecondDay()]['time'][:2]) and datetime.now().min > int(schedule[getSecondDay()]['time'][3:]):
+            elif datetime.now().hour == int(schedule[getSecondDay()]['time'][:2]) and datetime.now().min > int(
+                    schedule[getSecondDay()]['time'][3:]):
                 print("Too many retries, waiting for next day")
                 booked = True
             else:
