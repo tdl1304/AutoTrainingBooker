@@ -1,10 +1,11 @@
 # Auto Training Booker
+# !!Unusable due to botprotection!!
 **Python version: 3.8.8**  
 Although it may work with other versions. Not tested yet.  
   
 **How it works - in a nutshell**  
 It checks for available bookings two days ahead at a specified time. 
-It will wait till 5 seconds before session time. Then check for booking every 2 seconds. Once a booking has been made, it will wait till the next day. Terminating the program during runtime is **safe**.  
+It will wait till 5 seconds before session time. Then check for booking every 5 seconds. Once a booking has been made, it will wait till the next day. Terminating the program during runtime is **safe**.  
   
 *Disclaimer: only for personal usage* 
 
